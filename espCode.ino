@@ -2,12 +2,14 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <SoftwareSerial.h>
+#include <SPI.h>
+#include <SD.h>
 
 // =====================
 // WIFI INFO
 // =====================
-const char* ssid = "XieXieXieXie";
-const char* password = "Donghong.Wenhao.2025";
+const char* ssid = "Maxplanter";
+const char* password = "passedwords";
 
 // Google Apps Script Web App URL
 const char* serverUrl = "https://script.google.com/macros/s/AKfycbwIWFOveXHV3eLVIekOrm9UWTOOtIx5Z9pIXdjs-gjWBSkWDul6n0YkzDIt-SDAlHk/exec";
@@ -15,12 +17,24 @@ const char* serverUrl = "https://script.google.com/macros/s/AKfycbwIWFOveXHV3eLV
 // =====================
 // ESP8266 SOFTWARE SERIAL PINS
 // =====================
-// GPIO14 = D5 = ESP RX from Arduino D6
-// GPIO12 = D6 = ESP TX to Arduino D5
-#define ARDUINO_RX_PIN 14
-#define ARDUINO_TX_PIN 12
+// GPIO5 = D1 = ESP RX from Arduino D6 through divider
+// GPIO4 = D2 = ESP TX to Arduino D5
+#define ARDUINO_RX_PIN 5
+#define ARDUINO_TX_PIN 4
 
 SoftwareSerial arduinoSerial(ARDUINO_RX_PIN, ARDUINO_TX_PIN);
+
+// =====================
+// MICROSD SETTINGS
+// =====================
+// SPI pins:
+// D5/GPIO14 = SCK
+// D6/GPIO12 = MISO
+// D7/GPIO13 = MOSI
+// D0/GPIO16 = CS
+#define SD_CS_PIN 16
+
+bool sdReady = false;
 
 // =====================
 // DATA VARIABLES
@@ -39,16 +53,18 @@ String waterPump = "";
 String filterPump = "";
 String autoMode = "";
 
-// Send interval
+// Send/log interval
 unsigned long lastSendTime = 0;
 const unsigned long SEND_INTERVAL = 10000; // 10 seconds
 
 // =====================
 // FUNCTION DECLARATIONS
 // =====================
+void setupSD();
 void parseArduinoLine(String line);
 String getValue(String line, String key);
 int sendData();
+void logToSD(int httpCode);
 String urlEncode(String str);
 
 void setup() {
@@ -58,8 +74,11 @@ void setup() {
   arduinoSerial.begin(9600);
 
   Serial.println();
-  Serial.println("ESP8266 Smart Garden WiFi starting...");
-  Serial.println("Waiting for Arduino data on ESP D5/GPIO14...");
+  Serial.println("ESP8266 Smart Garden starting...");
+  Serial.println("Arduino RX on D1/GPIO5");
+  Serial.println("SD card CS on D0/GPIO16");
+
+  setupSD();
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -80,10 +99,8 @@ void setup() {
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi disconnected. Reconnecting...");
-
     WiFi.disconnect();
     WiFi.begin(ssid, password);
-
     delay(1000);
     return;
   }
@@ -98,42 +115,47 @@ void loop() {
       Serial.println(latestLine);
 
       parseArduinoLine(latestLine);
-
-      Serial.println("Parsed:");
-      Serial.print("moisture = "); Serial.println(moisture);
-      Serial.print("raw = "); Serial.println(moistureRaw);
-      Serial.print("threshold = "); Serial.println(threshold);
-      Serial.print("airTemp = "); Serial.println(airTemp);
-      Serial.print("humidity = "); Serial.println(humidity);
-      Serial.print("soilTemp = "); Serial.println(soilTemp);
-      Serial.print("light = "); Serial.println(light);
-      Serial.print("battery = "); Serial.println(battery);
-      Serial.print("waterPump = "); Serial.println(waterPump);
-      Serial.print("filterPump = "); Serial.println(filterPump);
-      Serial.print("autoMode = "); Serial.println(autoMode);
     }
   }
 
-  // Send every 10 seconds if we have data
+  // Send/log every 10 seconds if we have data
   if (millis() - lastSendTime >= SEND_INTERVAL) {
     lastSendTime = millis();
 
-    if (latestLine.length() > 0 && WiFi.status() == WL_CONNECTED) {
-      Serial.println("Sending data to Google Apps Script...");
+    if (latestLine.length() > 0) {
+      int httpCode = -999;
 
-      int httpCode = sendData();
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Sending to Google Apps Script...");
+        httpCode = sendData();
+      }
 
       Serial.print("HTTP code: ");
       Serial.println(httpCode);
 
-      if (httpCode == 200) {
-        Serial.println("Upload likely successful.");
-      } else {
-        Serial.println("Upload may have failed.");
-      }
+      logToSD(httpCode);
     } else {
-      Serial.println("No Arduino data yet, so not sending.");
+      Serial.println("No Arduino data yet.");
     }
+  }
+}
+
+void setupSD() {
+  if (SD.begin(SD_CS_PIN)) {
+    sdReady = true;
+    Serial.println("SD OK");
+
+    if (!SD.exists("/garden.csv")) {
+      File file = SD.open("/garden.csv", FILE_WRITE);
+
+      if (file) {
+        file.println("time_ms,moisture,moisture_raw,threshold,air_temp_c,humidity_percent,soil_temp_c,light_lux,battery_v,water_pump,filter_pump,auto_mode,http_code,raw_line");
+        file.close();
+      }
+    }
+  } else {
+    sdReady = false;
+    Serial.println("SD failed/not connected");
   }
 }
 
@@ -200,7 +222,6 @@ int sendData() {
 
   if (httpCode > 0) {
     String response = http.getString();
-
     Serial.print("Server response: ");
     Serial.println(response);
   } else {
@@ -211,6 +232,61 @@ int sendData() {
   http.end();
 
   return httpCode;
+}
+
+void logToSD(int httpCode) {
+  if (!sdReady) {
+    return;
+  }
+
+  File file = SD.open("/garden.csv", FILE_WRITE);
+
+  if (file) {
+    file.print(millis());
+    file.print(",");
+
+    file.print(moisture);
+    file.print(",");
+
+    file.print(moistureRaw);
+    file.print(",");
+
+    file.print(threshold);
+    file.print(",");
+
+    file.print(airTemp);
+    file.print(",");
+
+    file.print(humidity);
+    file.print(",");
+
+    file.print(soilTemp);
+    file.print(",");
+
+    file.print(light);
+    file.print(",");
+
+    file.print(battery);
+    file.print(",");
+
+    file.print(waterPump);
+    file.print(",");
+
+    file.print(filterPump);
+    file.print(",");
+
+    file.print(autoMode);
+    file.print(",");
+
+    file.print(httpCode);
+    file.print(",");
+
+    file.print("\"");
+    file.print(latestLine);
+    file.println("\"");
+
+    file.close();
+  }
 }
 
 String urlEncode(String str) {
