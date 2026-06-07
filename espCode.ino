@@ -15,8 +15,8 @@ const char* serverUrl = "https://script.google.com/macros/s/AKfycbwIWFOveXHV3eLV
 // =====================
 // ESP8266 SOFTWARE SERIAL PINS
 // =====================
-// GPIO14 = D5 = ESP RX from Arduino TX
-// GPIO12 = D6 = ESP TX to Arduino RX
+// GPIO14 = D5 = ESP RX from Arduino D6
+// GPIO12 = D6 = ESP TX to Arduino D5
 #define ARDUINO_RX_PIN 14
 #define ARDUINO_TX_PIN 12
 
@@ -28,12 +28,16 @@ SoftwareSerial arduinoSerial(ARDUINO_RX_PIN, ARDUINO_TX_PIN);
 String latestLine = "";
 
 String moisture = "";
+String moistureRaw = "";
+String threshold = "";
 String airTemp = "";
 String humidity = "";
 String soilTemp = "";
 String light = "";
-String pumpStatus = "";
 String battery = "";
+String waterPump = "";
+String filterPump = "";
+String autoMode = "";
 
 // Send interval
 unsigned long lastSendTime = 0;
@@ -48,14 +52,14 @@ int sendData();
 String urlEncode(String str);
 
 void setup() {
-  Serial.begin(19200);
+  Serial.begin(115200);
   delay(1000);
 
   arduinoSerial.begin(9600);
 
   Serial.println();
   Serial.println("ESP8266 Smart Garden WiFi starting...");
-  Serial.println("Waiting for Arduino data on GPIO14/D5...");
+  Serial.println("Waiting for Arduino data on ESP D5/GPIO14...");
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -74,7 +78,6 @@ void setup() {
 }
 
 void loop() {
-  // Reconnect Wi-Fi if disconnected
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi disconnected. Reconnecting...");
 
@@ -96,21 +99,18 @@ void loop() {
 
       parseArduinoLine(latestLine);
 
-      Serial.println("Parsed values:");
-      Serial.print("moisture = ");
-      Serial.println(moisture);
-      Serial.print("airTemp = ");
-      Serial.println(airTemp);
-      Serial.print("humidity = ");
-      Serial.println(humidity);
-      Serial.print("soilTemp = ");
-      Serial.println(soilTemp);
-      Serial.print("light = ");
-      Serial.println(light);
-      Serial.print("pumpStatus = ");
-      Serial.println(pumpStatus);
-      Serial.print("battery = ");
-      Serial.println(battery);
+      Serial.println("Parsed:");
+      Serial.print("moisture = "); Serial.println(moisture);
+      Serial.print("raw = "); Serial.println(moistureRaw);
+      Serial.print("threshold = "); Serial.println(threshold);
+      Serial.print("airTemp = "); Serial.println(airTemp);
+      Serial.print("humidity = "); Serial.println(humidity);
+      Serial.print("soilTemp = "); Serial.println(soilTemp);
+      Serial.print("light = "); Serial.println(light);
+      Serial.print("battery = "); Serial.println(battery);
+      Serial.print("waterPump = "); Serial.println(waterPump);
+      Serial.print("filterPump = "); Serial.println(filterPump);
+      Serial.print("autoMode = "); Serial.println(autoMode);
     }
   }
 
@@ -139,12 +139,16 @@ void loop() {
 
 void parseArduinoLine(String line) {
   moisture = getValue(line, "MOIST=");
+  moistureRaw = getValue(line, "RAW=");
+  threshold = getValue(line, "THRESH=");
   airTemp = getValue(line, "AIR=");
   humidity = getValue(line, "HUM=");
   soilTemp = getValue(line, "SOIL=");
   light = getValue(line, "LIGHT=");
-  pumpStatus = getValue(line, "PUMP=");
   battery = getValue(line, "BATT=");
+  waterPump = getValue(line, "WATERPUMP=");
+  filterPump = getValue(line, "FILTERPUMP=");
+  autoMode = getValue(line, "AUTO=");
 }
 
 String getValue(String line, String key) {
@@ -174,12 +178,16 @@ int sendData() {
   String url = String(serverUrl);
 
   url += "?moisture=" + urlEncode(moisture);
+  url += "&moistureRaw=" + urlEncode(moistureRaw);
+  url += "&threshold=" + urlEncode(threshold);
   url += "&airTemp=" + urlEncode(airTemp);
   url += "&humidity=" + urlEncode(humidity);
   url += "&soilTemp=" + urlEncode(soilTemp);
   url += "&light=" + urlEncode(light);
-  url += "&pumpStatus=" + urlEncode(pumpStatus);
   url += "&battery=" + urlEncode(battery);
+  url += "&waterPump=" + urlEncode(waterPump);
+  url += "&filterPump=" + urlEncode(filterPump);
+  url += "&autoMode=" + urlEncode(autoMode);
   url += "&raw=" + urlEncode(latestLine);
 
   Serial.print("URL: ");
