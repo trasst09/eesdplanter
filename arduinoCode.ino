@@ -5,8 +5,6 @@
 #include <DallasTemperature.h>
 #include <LiquidCrystal_I2C.h>
 #include <SoftwareSerial.h>
-#include <SPI.h>
-#include <SD.h>
 
 // =====================
 // DATA STRUCT
@@ -40,12 +38,9 @@ struct SensorData {
 #define ESP_RX_PIN 5
 #define ESP_TX_PIN 6
 
-// Pumps through Grove relay modules
-#define WATER_PUMP_RELAY_PIN 7   // clean reservoir -> plants
-#define FILTER_PUMP_RELAY_PIN 8  // dirty reservoir -> filter -> clean reservoir
-
-// microSD module
-#define SD_CS_PIN 10
+// Pumps through relay modules
+#define WATER_PUMP_RELAY_PIN 7   // clean water -> plants
+#define FILTER_PUMP_RELAY_PIN 8  // dirty water -> filter -> clean tank
 
 // =====================
 // OBJECTS
@@ -58,14 +53,12 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 SoftwareSerial espSerial(ESP_RX_PIN, ESP_TX_PIN);
 
 // =====================
-// MOISTURE CALIBRATION
+// CALIBRATION
 // =====================
 const int DRY_RAW = 850;
 const int WET_RAW = 350;
 
-// =====================
-// BATTERY DIVIDER
-// =====================
+// Battery divider:
 // Battery + ---- 100k ---- A2 ---- 10k ---- GND
 const float BATTERY_R1 = 100000.0;
 const float BATTERY_R2 = 10000.0;
@@ -74,21 +67,18 @@ const float ARDUINO_REF_VOLTAGE = 5.0;
 // =====================
 // WATERING SETTINGS
 // =====================
-const int BASE_DRY_THRESHOLD = 30;      // normal salal watering trigger
-const int EMERGENCY_DRY_THRESHOLD = 20; // very dry soil
-const int WATER_TARGET = 45;            // desired approximate soil moisture after watering
+const int BASE_DRY_THRESHOLD = 30;
+const int EMERGENCY_DRY_THRESHOLD = 20;
 
-const unsigned long WATER_PUMP_TIME = 5000;      // 5 sec water pulse
-const unsigned long FILTER_PUMP_TIME = 7000;     // 7 sec filter/return pulse
-const unsigned long WATER_COOLDOWN = 90000;      // 90 sec between watering pulses
-const unsigned long DATA_INTERVAL = 5000;        // read/send/log every 5 sec
+const unsigned long WATER_PUMP_TIME = 5000;    // clean -> plants
+const unsigned long FILTER_PUMP_TIME = 7000;   // dirty -> filter -> clean
+const unsigned long WATER_COOLDOWN = 90000;    // 90 seconds
+const unsigned long DATA_INTERVAL = 5000;      // 5 seconds
 
-// 4S LiPo safety
-const float BATTERY_CUTOFF_VOLTAGE = 13.0;
+const float BATTERY_CUTOFF_VOLTAGE = 13.0;     // 4S LiPo safety
 
-// Relay type
 // Most Grove relays are active HIGH.
-// If your relays turn on when LOW, change these two values.
+// If your relay turns ON with LOW, swap these.
 const int RELAY_ON = HIGH;
 const int RELAY_OFF = LOW;
 
@@ -103,8 +93,6 @@ bool filterPumpState = false;
 bool lastWaterPumpRan = false;
 bool lastFilterPumpRan = false;
 
-bool sdReady = false;
-
 unsigned long lastWaterTime = 0;
 unsigned long lastDataTime = 0;
 
@@ -114,14 +102,12 @@ unsigned long lastDataTime = 0;
 SensorData readSensors();
 int getEffectiveDryThreshold(SensorData data);
 void handleButton();
+void handleWateringLogic(SensorData data);
 void runWaterPump(unsigned long runTime);
 void runFilterPump(unsigned long runTime);
-void handleWateringLogic(SensorData data);
 void printToSerial(SensorData data);
 void updateLCD(SensorData data);
 void sendToESP(SensorData data);
-void logToSD(SensorData data);
-void setupSD();
 
 void setup() {
   Serial.begin(9600);
@@ -150,8 +136,6 @@ void setup() {
 
   Serial.println(F("Smart Garden Starting..."));
 
-  setupSD();
-
   delay(1500);
   lcd.clear();
 }
@@ -177,52 +161,27 @@ void loop() {
     printToSerial(data);
     updateLCD(data);
     sendToESP(data);
-    logToSD(data);
-  }
-}
-
-void setupSD() {
-  if (SD.begin(SD_CS_PIN)) {
-    sdReady = true;
-    Serial.println(F("SD OK"));
-
-    if (!SD.exists("garden.csv")) {
-      File file = SD.open("garden.csv", FILE_WRITE);
-
-      if (file) {
-        file.println(F("time_ms,moisture_raw,moisture_percent,effective_threshold,air_temp_c,humidity_percent,soil_temp_c,light_lux,battery_v,water_pump_ran,filter_pump_ran,auto_mode"));
-        file.close();
-      }
-    }
-  } else {
-    sdReady = false;
-    Serial.println(F("SD failed/not connected"));
   }
 }
 
 SensorData readSensors() {
   SensorData data;
 
-  // Soil moisture
   data.moistureRaw = analogRead(MOISTURE_PIN);
   data.moisturePercent = map(data.moistureRaw, DRY_RAW, WET_RAW, 0, 100);
   data.moisturePercent = constrain(data.moisturePercent, 0, 100);
 
-  // Air temperature and humidity
   data.airTempC = dht.readTemperature();
   data.humidity = dht.readHumidity();
 
   if (isnan(data.airTempC)) data.airTempC = -999;
   if (isnan(data.humidity)) data.humidity = -999;
 
-  // Soil temperature
   soilTempSensor.requestTemperatures();
   data.soilTempC = soilTempSensor.getTempCByIndex(0);
 
-  // Light level
   data.lightLux = lightMeter.readLightLevel();
 
-  // Battery voltage from A2
   int batteryRaw = analogRead(BATTERY_PIN);
   float pinVoltage = batteryRaw * (ARDUINO_REF_VOLTAGE / 1023.0);
   data.batteryVoltage = pinVoltage * ((BATTERY_R1 + BATTERY_R2) / BATTERY_R2);
@@ -235,26 +194,22 @@ SensorData readSensors() {
 int getEffectiveDryThreshold(SensorData data) {
   int threshold = BASE_DRY_THRESHOLD;
 
-  // Hot air = water earlier
   if (data.airTempC > 28) {
     threshold += 5;
   } else if (data.airTempC < 10) {
     threshold -= 3;
   }
 
-  // Low humidity = water earlier
   if (data.humidity < 35) {
     threshold += 3;
   } else if (data.humidity > 80) {
     threshold -= 3;
   }
 
-  // Bright light = slightly earlier watering
   if (data.lightLux > 15000) {
     threshold += 2;
   }
 
-  // Cold soil = avoid overwatering
   if (data.soilTempC < 8) {
     threshold -= 5;
   } else if (data.soilTempC > 25) {
@@ -275,14 +230,15 @@ void handleWateringLogic(SensorData data) {
   bool cooldownDone = now - lastWaterTime > WATER_COOLDOWN;
 
   if ((batteryOK || emergencyDry) && dryEnough && cooldownDone) {
-    Serial.println(F("Watering needed. Running water pump."));
+    Serial.println(F("Watering needed. Running clean water pump."));
 
     // Pump 1: clean reservoir -> plants
     runWaterPump(WATER_PUMP_TIME);
 
-    // Pump 2: dirty reservoir -> filter -> clean reservoir
-    // This runs after watering to recycle/clean drainage water.
+    // Short pause before moving dirty/drain water through filter
     delay(500);
+
+    // Pump 2: dirty reservoir -> filter -> clean reservoir
     runFilterPump(FILTER_PUMP_TIME);
 
     lastWaterTime = millis();
@@ -343,7 +299,7 @@ void printToSerial(SensorData data) {
   Serial.print(data.moisturePercent);
   Serial.println(F("%"));
 
-  Serial.print(F("Effective Dry Threshold: "));
+  Serial.print(F("Threshold: "));
   Serial.print(data.effectiveDryThreshold);
   Serial.println(F("%"));
 
@@ -428,49 +384,4 @@ void sendToESP(SensorData data) {
 
   espSerial.print(F(",AUTO="));
   espSerial.println(autoMode ? F("ON") : F("OFF"));
-}
-
-void logToSD(SensorData data) {
-  if (!sdReady) return;
-
-  File file = SD.open("garden.csv", FILE_WRITE);
-
-  if (file) {
-    file.print(millis());
-    file.print(",");
-
-    file.print(data.moistureRaw);
-    file.print(",");
-
-    file.print(data.moisturePercent);
-    file.print(",");
-
-    file.print(data.effectiveDryThreshold);
-    file.print(",");
-
-    file.print(data.airTempC);
-    file.print(",");
-
-    file.print(data.humidity);
-    file.print(",");
-
-    file.print(data.soilTempC);
-    file.print(",");
-
-    file.print(data.lightLux);
-    file.print(",");
-
-    file.print(data.batteryVoltage);
-    file.print(",");
-
-    file.print(lastWaterPumpRan ? F("YES") : F("NO"));
-    file.print(",");
-
-    file.print(lastFilterPumpRan ? F("YES") : F("NO"));
-    file.print(",");
-
-    file.println(autoMode ? F("ON") : F("OFF"));
-
-    file.close();
-  }
 }
