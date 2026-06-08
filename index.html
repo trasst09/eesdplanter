@@ -1,138 +1,308 @@
-const SHEET_NAME = "SmartGardenData";
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Smart Garden Dashboard</title>
 
-function doGet(e) {
-  const params = e.parameter || {};
-  const action = params.action || "save";
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f2;
+      color: #1f2d1f;
+      margin: 0;
+      padding: 24px;
+    }
 
-  if (action === "latest") {
-    return jsonResponse(getLatestData());
-  }
+    h1 {
+      margin-bottom: 4px;
+    }
 
-  if (action === "recent") {
-    return jsonResponse(getRecentData());
-  }
+    .subtitle {
+      color: #5d6b5d;
+      margin-bottom: 24px;
+    }
 
-  return jsonResponse(saveData(params));
-}
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
 
-function saveData(params) {
-  const sheet = getSheet();
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
 
-  const row = [
-    new Date(),
-    params.moisture || "",
-    params.moistureRaw || "",
-    params.threshold || "",
-    params.airTemp || "",
-    params.humidity || "",
-    params.soilTemp || "",
-    params.light || "",
-    params.battery || "",
-    params.waterPump || "",
-    params.filterPump || "",
-    params.autoMode || "",
-    params.raw || ""
-  ];
+    .label {
+      font-size: 14px;
+      color: #667066;
+      margin-bottom: 8px;
+    }
 
-  sheet.appendRow(row);
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+    }
 
-  return {
-    status: "ok",
-    message: "Data saved",
-    data: rowToObject(row)
-  };
-}
+    .unit {
+      font-size: 15px;
+      color: #667066;
+      margin-left: 3px;
+    }
 
-function getLatestData() {
-  const sheet = getSheet();
-  const lastRow = sheet.getLastRow();
+    .status-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
 
-  if (lastRow < 2) {
-    return {
-      status: "empty",
-      message: "No data yet"
-    };
-  }
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: white;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+      font-weight: bold;
+    }
 
-  const row = sheet.getRange(lastRow, 1, 1, 13).getValues()[0];
+    .on {
+      color: #0b7a2a;
+    }
 
-  return {
-    status: "ok",
-    data: rowToObject(row)
-  };
-}
+    .off {
+      color: #8a1f1f;
+    }
 
-function getRecentData() {
-  const sheet = getSheet();
-  const lastRow = sheet.getLastRow();
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
 
-  if (lastRow < 2) {
-    return {
-      status: "empty",
-      data: []
-    };
-  }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e8e2;
+      text-align: left;
+      font-size: 14px;
+    }
 
-  const count = Math.min(20, lastRow - 1);
-  const startRow = lastRow - count + 1;
+    th {
+      background: #dfe9d8;
+    }
 
-  const rows = sheet.getRange(startRow, 1, count, 13).getValues();
+    .small {
+      font-size: 13px;
+      color: #667066;
+    }
 
-  return {
-    status: "ok",
-    data: rows.map(rowToObject)
-  };
-}
+    .error {
+      color: #9b1c1c;
+      font-weight: bold;
+    }
+  </style>
+</head>
 
-function getSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
+<body>
+  <h1>Smart Garden Dashboard</h1>
+  <div class="subtitle">Live salal planter sensor data</div>
 
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-  }
+  <div id="error" class="error"></div>
 
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow([
-      "Timestamp",
-      "Moisture",
-      "Moisture Raw",
-      "Threshold",
-      "Air Temp C",
-      "Humidity",
-      "Soil Temp C",
-      "Light Lux",
-      "Battery V",
-      "Water Pump",
-      "Filter Pump",
-      "Auto Mode",
-      "Raw Line"
-    ]);
-  }
+  <div class="grid">
+    <div class="card">
+      <div class="label">Soil Moisture</div>
+      <div class="value"><span id="moisture">--</span><span class="unit">%</span></div>
+    </div>
 
-  return sheet;
-}
+    <div class="card">
+      <div class="label">Adjusted Dry Threshold</div>
+      <div class="value"><span id="threshold">--</span><span class="unit">%</span></div>
+    </div>
 
-function rowToObject(row) {
-  return {
-    timestamp: row[0],
-    moisture: row[1],
-    moistureRaw: row[2],
-    threshold: row[3],
-    airTemp: row[4],
-    humidity: row[5],
-    soilTemp: row[6],
-    light: row[7],
-    battery: row[8],
-    waterPump: row[9],
-    filterPump: row[10],
-    autoMode: row[11],
-    raw: row[12]
-  };
-}
+    <div class="card">
+      <div class="label">Air Temperature</div>
+      <div class="value"><span id="airTemp">--</span><span class="unit">°C</span></div>
+    </div>
 
-function jsonResponse(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+    <div class="card">
+      <div class="label">Humidity</div>
+      <div class="value"><span id="humidity">--</span><span class="unit">%</span></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Soil Temperature</div>
+      <div class="value"><span id="soilTemp">--</span><span class="unit">°C</span></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Light</div>
+      <div class="value"><span id="light">--</span><span class="unit">lux</span></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Battery</div>
+      <div class="value"><span id="battery">--</span><span class="unit">V</span></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Raw Moisture</div>
+      <div class="value"><span id="moistureRaw">--</span></div>
+    </div>
+  </div>
+
+  <div class="status-row">
+    <div class="pill">Clean → Plants Pump: <span id="waterPump">--</span></div>
+    <div class="pill">Dirty → Filter Pump: <span id="filterPump">--</span></div>
+    <div class="pill">Auto Mode: <span id="autoMode">--</span></div>
+    <div class="pill small">Last Update: <span id="timestamp">--</span></div>
+  </div>
+
+  <h2>Recent Readings</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Moisture</th>
+        <th>Threshold</th>
+        <th>Air °C</th>
+        <th>Humidity</th>
+        <th>Soil °C</th>
+        <th>Light</th>
+        <th>Battery</th>
+        <th>Water Pump</th>
+        <th>Filter Pump</th>
+      </tr>
+    </thead>
+    <tbody id="recentBody">
+      <tr>
+        <td colspan="10">Loading...</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    async function loadLatest() {
+      try {
+        const response = await fetch("?action=latest");
+        const result = await response.json();
+
+        if (result.status !== "ok") {
+          document.getElementById("error").textContent = result.message || "No data yet.";
+          return;
+        }
+
+        document.getElementById("error").textContent = "";
+
+        const d = result.data;
+
+        setText("moisture", d.moisture);
+        setText("threshold", d.threshold);
+        setText("airTemp", d.airTemp);
+        setText("humidity", d.humidity);
+        setText("soilTemp", d.soilTemp);
+        setText("light", d.light);
+        setText("battery", d.battery);
+        setText("moistureRaw", d.moistureRaw);
+
+        setStatus("waterPump", d.waterPump);
+        setStatus("filterPump", d.filterPump);
+        setStatus("autoMode", d.autoMode);
+
+        setText("timestamp", formatTime(d.timestamp));
+      } catch (err) {
+        document.getElementById("error").textContent = "Could not load latest data.";
+      }
+    }
+
+    async function loadRecent() {
+      try {
+        const response = await fetch("?action=recent");
+        const result = await response.json();
+
+        const body = document.getElementById("recentBody");
+        body.innerHTML = "";
+
+        if (result.status !== "ok" || !result.data || result.data.length === 0) {
+          body.innerHTML = "<tr><td colspan='10'>No recent data.</td></tr>";
+          return;
+        }
+
+        result.data.reverse().forEach(d => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${formatTime(d.timestamp)}</td>
+            <td>${safe(d.moisture)}%</td>
+            <td>${safe(d.threshold)}%</td>
+            <td>${safe(d.airTemp)}</td>
+            <td>${safe(d.humidity)}%</td>
+            <td>${safe(d.soilTemp)}</td>
+            <td>${safe(d.light)}</td>
+            <td>${safe(d.battery)}V</td>
+            <td>${safe(d.waterPump)}</td>
+            <td>${safe(d.filterPump)}</td>
+          `;
+
+          body.appendChild(row);
+        });
+      } catch (err) {
+        document.getElementById("recentBody").innerHTML =
+          "<tr><td colspan='10'>Could not load recent data.</td></tr>";
+      }
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = safe(value);
+    }
+
+    function setStatus(id, value) {
+      const el = document.getElementById(id);
+      el.textContent = safe(value);
+
+      el.classList.remove("on", "off");
+
+      if (value === "ON") {
+        el.classList.add("on");
+      } else if (value === "OFF") {
+        el.classList.add("off");
+      }
+    }
+
+    function safe(value) {
+      if (value === undefined || value === null || value === "") {
+        return "--";
+      }
+
+      return value;
+    }
+
+    function formatTime(value) {
+      if (!value) return "--";
+
+      const date = new Date(value);
+
+      if (isNaN(date.getTime())) {
+        return value;
+      }
+
+      return date.toLocaleString();
+    }
+
+    function refresh() {
+      loadLatest();
+      loadRecent();
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
