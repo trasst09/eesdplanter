@@ -1,0 +1,138 @@
+const SHEET_NAME = "SmartGardenData";
+
+function doGet(e) {
+  const params = e.parameter || {};
+  const action = params.action || "save";
+
+  if (action === "latest") {
+    return jsonResponse(getLatestData());
+  }
+
+  if (action === "recent") {
+    return jsonResponse(getRecentData());
+  }
+
+  return jsonResponse(saveData(params));
+}
+
+function saveData(params) {
+  const sheet = getSheet();
+
+  const row = [
+    new Date(),
+    params.moisture || "",
+    params.moistureRaw || "",
+    params.threshold || "",
+    params.airTemp || "",
+    params.humidity || "",
+    params.soilTemp || "",
+    params.light || "",
+    params.battery || "",
+    params.waterPump || "",
+    params.filterPump || "",
+    params.autoMode || "",
+    params.raw || ""
+  ];
+
+  sheet.appendRow(row);
+
+  return {
+    status: "ok",
+    message: "Data saved",
+    data: rowToObject(row)
+  };
+}
+
+function getLatestData() {
+  const sheet = getSheet();
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) {
+    return {
+      status: "empty",
+      message: "No data yet"
+    };
+  }
+
+  const row = sheet.getRange(lastRow, 1, 1, 13).getValues()[0];
+
+  return {
+    status: "ok",
+    data: rowToObject(row)
+  };
+}
+
+function getRecentData() {
+  const sheet = getSheet();
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) {
+    return {
+      status: "empty",
+      data: []
+    };
+  }
+
+  const count = Math.min(20, lastRow - 1);
+  const startRow = lastRow - count + 1;
+
+  const rows = sheet.getRange(startRow, 1, count, 13).getValues();
+
+  return {
+    status: "ok",
+    data: rows.map(rowToObject)
+  };
+}
+
+function getSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+  }
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow([
+      "Timestamp",
+      "Moisture",
+      "Moisture Raw",
+      "Threshold",
+      "Air Temp C",
+      "Humidity",
+      "Soil Temp C",
+      "Light Lux",
+      "Battery V",
+      "Water Pump",
+      "Filter Pump",
+      "Auto Mode",
+      "Raw Line"
+    ]);
+  }
+
+  return sheet;
+}
+
+function rowToObject(row) {
+  return {
+    timestamp: row[0],
+    moisture: row[1],
+    moistureRaw: row[2],
+    threshold: row[3],
+    airTemp: row[4],
+    humidity: row[5],
+    soilTemp: row[6],
+    light: row[7],
+    battery: row[8],
+    waterPump: row[9],
+    filterPump: row[10],
+    autoMode: row[11],
+    raw: row[12]
+  };
+}
+
+function jsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
