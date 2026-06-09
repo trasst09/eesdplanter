@@ -1,10 +1,9 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Smart Garden Dashboard</title>
 
   <style>
@@ -37,7 +36,7 @@
       border-radius: 12px;
       padding: 12px 14px;
       margin-bottom: 18px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
       font-size: 13px;
       color: #555;
       overflow-wrap: anywhere;
@@ -66,7 +65,7 @@
       background: white;
       border-radius: 16px;
       padding: 18px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
       min-height: 108px;
     }
 
@@ -106,7 +105,7 @@
       padding: 10px 14px;
       border-radius: 999px;
       background: white;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
       font-weight: bold;
       font-size: 14px;
     }
@@ -142,7 +141,7 @@
       width: 100%;
       overflow-x: auto;
       border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
       background: white;
     }
 
@@ -170,7 +169,7 @@
       background: white;
       border-radius: 14px;
       padding: 16px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
     }
 
     .raw-line {
@@ -178,7 +177,26 @@
       font-size: 13px;
       overflow-wrap: anywhere;
     }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .value {
+        font-size: 26px;
+      }
+
+      table {
+        min-width: 850px;
+      }
+    }
   </style>
+
 </head>
 
 <body>
@@ -186,112 +204,115 @@
     <h1>Smart Garden Dashboard</h1>
     <div class="subtitle">Live salal planter data from Arduino + ESP8266</div>
 
-    <button onclick="refresh()">Refresh Now</button>
+```
+<button onclick="refresh()">Refresh Now</button>
 
-    <div class="debug">
-      <b>Dashboard status:</b>
-      <span id="pageStatus">Loading...</span>
-      <br>
-      <b>Web app URL:</b>
-      <span id="webAppUrlDisplay">--</span>
-      <br>
-      <b>Last refresh:</b>
-      <span id="pageUpdate">--</span>
-    </div>
+<div class="debug">
+  <b>Dashboard status:</b>
+  <span id="pageStatus">Loading...</span>
+  <br>
+  <b>API URL:</b>
+  <span id="webAppUrlDisplay">--</span>
+  <br>
+  <b>Last refresh:</b>
+  <span id="pageUpdate">--</span>
+</div>
 
-    <div id="error" class="error"></div>
+<div id="error" class="error"></div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="label">Soil moisture</div>
-        <div class="value"><span id="moisture">--</span><span class="unit">%</span></div>
-        <div class="note">Main watering trigger</div>
-      </div>
+<div class="grid">
+  <div class="card">
+    <div class="label">Soil moisture</div>
+    <div class="value"><span id="moisture">--</span><span class="unit">%</span></div>
+    <div class="note">Main watering trigger</div>
+  </div>
 
-      <div class="card">
-        <div class="label">Adjusted dry threshold</div>
-        <div class="value"><span id="threshold">--</span><span class="unit">%</span></div>
-        <div class="note">Weather-adjusted dry point</div>
-      </div>
+  <div class="card">
+    <div class="label">Adjusted dry threshold</div>
+    <div class="value"><span id="threshold">--</span><span class="unit">%</span></div>
+    <div class="note">Weather-adjusted dry point</div>
+  </div>
 
-      <div class="card">
-        <div class="label">Raw moisture reading</div>
-        <div class="value"><span id="moistureRaw">--</span></div>
-        <div class="note">Arduino analog value</div>
-      </div>
+  <div class="card">
+    <div class="label">Raw moisture reading</div>
+    <div class="value"><span id="moistureRaw">--</span></div>
+    <div class="note">Arduino analog value</div>
+  </div>
 
-      <div class="card">
-        <div class="label">Air temperature</div>
-        <div class="value"><span id="airTemp">--</span><span class="unit">°C</span></div>
-      </div>
+  <div class="card">
+    <div class="label">Air temperature</div>
+    <div class="value"><span id="airTemp">--</span><span class="unit">°C</span></div>
+  </div>
 
-      <div class="card">
-        <div class="label">Humidity</div>
-        <div class="value"><span id="humidity">--</span><span class="unit">%</span></div>
-      </div>
+  <div class="card">
+    <div class="label">Humidity</div>
+    <div class="value"><span id="humidity">--</span><span class="unit">%</span></div>
+  </div>
 
-      <div class="card">
-        <div class="label">Soil temperature</div>
-        <div class="value"><span id="soilTemp">--</span><span class="unit">°C</span></div>
-      </div>
+  <div class="card">
+    <div class="label">Soil temperature</div>
+    <div class="value"><span id="soilTemp">--</span><span class="unit">°C</span></div>
+  </div>
 
-      <div class="card">
-        <div class="label">Light level</div>
-        <div class="value"><span id="light">--</span><span class="unit">lux</span></div>
-      </div>
+  <div class="card">
+    <div class="label">Light level</div>
+    <div class="value"><span id="light">--</span><span class="unit">lux</span></div>
+  </div>
 
-      <div class="card">
-        <div class="label">Battery voltage</div>
-        <div class="value"><span id="battery">--</span><span class="unit">V</span></div>
-        <div class="note" id="batteryNote">4S LiPo monitor</div>
-      </div>
-    </div>
+  <div class="card">
+    <div class="label">Battery voltage</div>
+    <div class="value"><span id="battery">--</span><span class="unit">V</span></div>
+    <div class="note" id="batteryNote">4S LiPo monitor</div>
+  </div>
+</div>
 
-    <div class="status-row">
-      <div class="pill">Clean → Plants Pump: <span id="waterPump">--</span></div>
-      <div class="pill">Dirty → Filter Pump: <span id="filterPump">--</span></div>
-      <div class="pill">Auto Mode: <span id="autoMode">--</span></div>
-      <div class="pill">Last Sensor Update: <span id="timestamp">--</span></div>
-    </div>
+<div class="status-row">
+  <div class="pill">Clean → Plants Pump: <span id="waterPump">--</span></div>
+  <div class="pill">Dirty → Filter Pump: <span id="filterPump">--</span></div>
+  <div class="pill">Auto Mode: <span id="autoMode">--</span></div>
+  <div class="pill">Last Sensor Update: <span id="timestamp">--</span></div>
+</div>
 
-    <h2>Recent Readings</h2>
+<h2>Recent Readings</h2>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Moisture</th>
-            <th>Raw</th>
-            <th>Threshold</th>
-            <th>Air °C</th>
-            <th>Humidity</th>
-            <th>Soil °C</th>
-            <th>Light</th>
-            <th>Battery</th>
-            <th>Water Pump</th>
-            <th>Filter Pump</th>
-            <th>Auto</th>
-          </tr>
-        </thead>
-        <tbody id="recentBody">
-          <tr>
-            <td colspan="12">Loading...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Moisture</th>
+        <th>Raw</th>
+        <th>Threshold</th>
+        <th>Air °C</th>
+        <th>Humidity</th>
+        <th>Soil °C</th>
+        <th>Light</th>
+        <th>Battery</th>
+        <th>Water Pump</th>
+        <th>Filter Pump</th>
+        <th>Auto</th>
+      </tr>
+    </thead>
+    <tbody id="recentBody">
+      <tr>
+        <td colspan="12">Loading...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-    <div class="raw-box">
-      <div class="label">Latest raw line</div>
-      <div id="rawLine" class="raw-line">--</div>
-    </div>
+<div class="raw-box">
+  <div class="label">Latest raw line</div>
+  <div id="rawLine" class="raw-line">--</div>
+</div>
+```
+
   </div>
 
   <script>
-    const WEB_APP_URL = "<?= webAppUrl ?>";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWZ0RVWSwElup5HkrAvJrA3Wno0T9yvXhwtzZfYgg5cka8RM-PTdsqZ5P9oWhHFAh1/exec";
 
-    document.getElementById("webAppUrlDisplay").textContent = WEB_APP_URL || "Missing web app URL";
+    document.getElementById("webAppUrlDisplay").textContent = WEB_APP_URL;
 
     function apiUrl(action) {
       return WEB_APP_URL + "?action=" + action + "&cacheBust=" + Date.now();
@@ -299,23 +320,19 @@
 
     async function loadLatest() {
       try {
-        const url = apiUrl("latest");
-        console.log("Loading latest:", url);
-
-        const response = await fetch(url);
+        const response = await fetch(apiUrl("latest"));
         const text = await response.text();
-
-        console.log("Latest raw response:", text);
 
         let result;
         try {
           result = JSON.parse(text);
         } catch (jsonErr) {
-          throw new Error("Latest endpoint did not return JSON. Response: " + text);
+          throw new Error("Latest endpoint did not return JSON. Response: " + text.substring(0, 300));
         }
 
         if (result.status !== "ok") {
           showError(result.message || "No latest data found yet.");
+          document.getElementById("pageStatus").textContent = "No latest data found.";
           return;
         }
 
@@ -349,19 +366,14 @@
 
     async function loadRecent() {
       try {
-        const url = apiUrl("recent");
-        console.log("Loading recent:", url);
-
-        const response = await fetch(url);
+        const response = await fetch(apiUrl("recent"));
         const text = await response.text();
-
-        console.log("Recent raw response:", text);
 
         let result;
         try {
           result = JSON.parse(text);
         } catch (jsonErr) {
-          throw new Error("Recent endpoint did not return JSON. Response: " + text);
+          throw new Error("Recent endpoint did not return JSON. Response: " + text.substring(0, 300));
         }
 
         const body = document.getElementById("recentBody");
@@ -374,7 +386,7 @@
 
         const rows = result.data.slice().reverse();
 
-        rows.forEach(d => {
+        rows.forEach(function(d) {
           const row = document.createElement("tr");
 
           row.innerHTML =
@@ -465,6 +477,7 @@
       if (value === undefined || value === null || value === "") {
         return "--";
       }
+
       return String(value);
     }
 
@@ -486,5 +499,6 @@
     refresh();
     setInterval(refresh, 10000);
   </script>
+
 </body>
 </html>
