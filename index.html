@@ -1,1126 +1,514 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
+@@ -1028,3 +1029,509 @@ <h3>Reading distribution</h3>
+</script>
+</body>
+</html>
+=======
+<!DOCTYPE html>
+
+<html>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Garden Monitor</title>
+  <title>Smart Garden Dashboard</title>
+
   <style>
-    :root {
-      --surface: rgba(255, 251, 245, 0.88);
-      --surface-strong: #fffdf9;
-      --ink: #1f241d;
-      --muted: #5e6559;
-      --line: rgba(61, 80, 53, 0.12);
-      --brand: #285943;
-      --brand-2: #d9863d;
-      --accent: #7fb069;
-      --danger: #bb4d3e;
-      --warn: #c48a2f;
-      --shadow: 0 22px 50px rgba(31, 36, 29, 0.08);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-    }
-
-    * { box-sizing: border-box; }
-
     body {
+      font-family: Arial, sans-serif;
+      background: #f3f7ef;
+      color: #1f2d1f;
       margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(217, 134, 61, 0.14), transparent 30%),
-        radial-gradient(circle at top right, rgba(127, 176, 105, 0.18), transparent 28%),
-        linear-gradient(180deg, #f7f3ea 0%, #eef3ea 100%);
-      min-height: 100vh;
+      padding: 24px;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(40, 89, 67, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(40, 89, 67, 0.025) 1px, transparent 1px);
-      background-size: 36px 36px;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 80%);
+    .container {
+      max-width: 1150px;
+      margin: 0 auto;
     }
 
-    .shell {
-      width: min(1240px, calc(100% - 32px));
-      margin: 24px auto 40px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero {
-      background: linear-gradient(135deg, rgba(40, 89, 67, 0.96), rgba(50, 96, 72, 0.92));
-      color: #f8f5ee;
-      border-radius: 32px;
-      padding: 28px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      right: -60px;
-      top: -60px;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 65%);
-    }
-
-    .topbar,
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      align-items: baseline;
-    }
-
-    .hero-side {
-      min-width: 300px;
-      display: grid;
-      gap: 12px;
-      align-content: start;
-    }
-
-    .eyebrow,
-    .subtle,
-    .badge,
-    .kicker,
-    .table-wrap th,
-    .chart-meta,
-    .nav button,
-    .live-pill,
-    .pill,
-    .status-chip,
-    .table-note {
-      font-family: "Trebuchet MS", Verdana, sans-serif;
-    }
-
-    .eyebrow {
-      margin: 0 0 10px;
-      font-size: 12px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      opacity: 0.72;
-    }
-
-    .hero h1 {
+    h1 {
       margin: 0;
-      font-size: clamp(2.2rem, 6vw, 4rem);
-      line-height: 0.96;
-      max-width: 10ch;
-      font-weight: 600;
+      font-size: 32px;
     }
 
-    .hero-copy {
-      max-width: 560px;
-      line-height: 1.6;
-      color: rgba(248, 245, 238, 0.86);
+    .subtitle {
+      color: #667066;
+      margin-top: 6px;
+      margin-bottom: 22px;
     }
 
-    .nav {
-      display: inline-flex;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 999px;
-      padding: 6px;
-      backdrop-filter: blur(12px);
-      width: fit-content;
-    }
-
-    .nav button {
-      border: 0;
-      background: transparent;
-      color: rgba(248, 245, 238, 0.78);
-      padding: 10px 16px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 600;
-      transition: 180ms ease;
-    }
-
-    .nav button.active {
-      background: #f8f5ee;
-      color: var(--brand);
-    }
-
-    .live-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
+    .debug {
+      background: #ffffff;
+      border-radius: 12px;
       padding: 12px 14px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.11);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      font-size: 0.95rem;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      font-size: 13px;
+      color: #555;
+      overflow-wrap: anywhere;
     }
 
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #a8df8e;
-      box-shadow: 0 0 0 6px rgba(168, 223, 142, 0.2);
-      animation: pulse 1.8s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(0.82); opacity: 0.66; }
-    }
-
-    .hero-grid,
-    .metric-grid,
-    .viz-grid,
-    .system-grid {
-      display: grid;
-      gap: 16px;
-    }
-
-    .hero-grid {
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      margin-top: 26px;
-    }
-
-    .hero-stat {
-      padding: 18px;
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-stat .label,
-    .hero-stat .number {
-      display: block;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
-    }
-
-    .hero-stat .label {
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
-
-    .hero-stat .number {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      line-height: 1;
-    }
-
-    .page {
+    .error {
       display: none;
-      margin-top: 24px;
-      animation: rise 320ms ease;
+      background: #fff1f0;
+      color: #b3261e;
+      border: 1px solid #ffd2cf;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
     }
 
-    .page.active { display: block; }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .section-grid {
+    .grid {
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 20px;
-      align-items: start;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
     }
 
-    .stack { display: grid; gap: 20px; }
-
-    .panel,
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      overflow: hidden;
-    }
-
-    .panel-inner,
-    .chart-card {
-      padding: 22px;
-    }
-
-    .panel h2,
-    .panel h3,
-    .panel p { margin-top: 0; }
-
-    .subtle { color: var(--muted); }
-
-    .metric-grid {
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    }
-
-    .system-grid {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-
-    .metric-card {
-      background: var(--surface-strong);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
+    .card {
+      background: white;
+      border-radius: 16px;
       padding: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      min-height: 108px;
     }
 
-    .kicker {
-      color: var(--muted);
-      font-size: 0.8rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    .metric-value {
-      font-size: clamp(1.9rem, 4vw, 2.8rem);
-      line-height: 1;
+    .label {
+      font-size: 14px;
+      color: #667066;
       margin-bottom: 8px;
-      color: var(--brand);
     }
 
-    .metric-note {
-      color: var(--muted);
-      font-size: 0.94rem;
+    .value {
+      font-size: 30px;
+      font-weight: bold;
+      line-height: 1.1;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 11px;
-      border-radius: 999px;
-      font-size: 0.84rem;
-      background: #edf4ea;
-      color: var(--brand);
-      border: 1px solid rgba(40, 89, 67, 0.12);
+    .unit {
+      font-size: 15px;
+      color: #667066;
+      margin-left: 4px;
+      font-weight: normal;
+    }
+
+    .note {
+      margin-top: 8px;
+      color: #667066;
+      font-size: 13px;
     }
 
     .status-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
+      margin-bottom: 24px;
     }
 
-    .pill,
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+    .pill {
+      padding: 10px 14px;
       border-radius: 999px;
-      font-size: 0.9rem;
-      border: 1px solid rgba(40, 89, 67, 0.12);
-      background: #fffdf9;
+      background: white;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      font-weight: bold;
+      font-size: 14px;
     }
 
-    .status-on {
-      color: #1f5e45;
-      background: rgba(127, 176, 105, 0.18);
+    .on {
+      color: #1f8a3b;
     }
 
-    .status-off {
-      color: #8a392f;
-      background: rgba(187, 77, 62, 0.16);
+    .off {
+      color: #b3261e;
     }
 
-    .status-warn {
-      color: #805615;
-      background: rgba(196, 138, 47, 0.16);
+    .warn {
+      color: #a36b00;
     }
 
-    .insight-list {
-      display: grid;
-      gap: 14px;
+    button {
+      border: none;
+      background: #2e6b2e;
+      color: white;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 18px;
     }
 
-    .insight {
-      padding: 14px 16px;
-      border-radius: 18px;
-      background: rgba(127, 176, 105, 0.1);
-      border: 1px solid rgba(127, 176, 105, 0.18);
+    button:hover {
+      background: #245724;
     }
 
-    .table-wrap { overflow-x: auto; }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      background: white;
+    }
 
     table {
       width: 100%;
-      min-width: 920px;
+      min-width: 900px;
       border-collapse: collapse;
+      background: white;
     }
 
     th, td {
-      padding: 14px 12px;
-      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      border-bottom: 1px solid #dfe8d8;
       text-align: left;
+      font-size: 14px;
       white-space: nowrap;
     }
 
     th {
-      color: var(--muted);
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    tbody tr:hover { background: rgba(40, 89, 67, 0.035); }
-
-    .table-note {
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 0.88rem;
+      background: #dfe9d8;
     }
 
     .raw-box {
-      background: #fffdf9;
-      border: 1px solid var(--line);
-      border-radius: 18px;
+      margin-top: 18px;
+      background: white;
+      border-radius: 14px;
       padding: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
     }
 
     .raw-line {
-      margin: 0;
       font-family: Consolas, monospace;
       font-size: 13px;
-      white-space: pre-wrap;
-      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
-    .viz-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 20px;
-    }
-
-    .chart-meta {
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    canvas {
-      width: 100%;
-      height: 280px;
-      display: block;
-      background: #fffdf9;
-      border-radius: 18px;
-    }
-
-    .empty {
-      padding: 42px 18px;
-      text-align: center;
-      color: var(--muted);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
-    }
-
-    footer {
-      padding: 16px 6px 0;
-      text-align: center;
-      color: var(--muted);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
-      font-size: 0.92rem;
-    }
-
-    @media (max-width: 980px) {
-      .section-grid,
-      .viz-grid {
-        grid-template-columns: 1fr;
-      }
-      .hero h1 { max-width: none; }
-    }
-
-    @media (max-width: 640px) {
-      .shell {
-        width: min(100% - 20px, 1240px);
-        margin-top: 10px;
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
       }
 
-      .hero,
-      .panel-inner,
-      .chart-card {
-        padding: 18px;
+      h1 {
+        font-size: 26px;
       }
 
-      .nav {
-        width: 100%;
-        justify-content: space-between;
+      .value {
+        font-size: 26px;
       }
 
-      .nav button { flex: 1; }
-      table { min-width: 760px; }
+      table {
+        min-width: 850px;
+      }
     }
   </style>
+
 </head>
+
 <body>
-  <div class="shell">
-    <header class="hero">
-      <div class="topbar">
-        <div>
-          <p class="eyebrow">Smart Garden Monitor</p>
-          <h1>Healthier watering, clearer signals.</h1>
-          <p class="hero-copy">
-            The dashboard stays first for fast checks, while the second page turns incoming garden data
-            into trends for moisture, temperature, battery, and pump behavior.
-          </p>
-        </div>
+  <div class="container">
+    <h1>Smart Garden Dashboard</h1>
+    <div class="subtitle">Live salal planter data from Arduino + ESP8266</div>
 
-        <div class="hero-side">
-          <div class="nav" aria-label="Page navigation">
-            <button class="active" data-page-target="dashboardPage">Dashboard</button>
-            <button data-page-target="visualizationsPage">Visualizations</button>
-          </div>
+```
+<button onclick="refresh()">Refresh Now</button>
 
-          <div class="live-pill">
-            <span class="dot" aria-hidden="true"></span>
-            <span id="statusText">Loading live garden feed...</span>
-          </div>
-        </div>
-      </div>
+<div class="debug">
+  <b>Dashboard status:</b>
+  <span id="pageStatus">Loading...</span>
+  <br>
+  <b>API URL:</b>
+  <span id="webAppUrlDisplay">--</span>
+  <br>
+  <b>Last refresh:</b>
+  <span id="pageUpdate">--</span>
+</div>
 
-      <div class="hero-grid">
-        <div class="hero-stat">
-          <span class="label">Soil Moisture</span>
-          <span class="number" id="heroMoisture">--</span>
-        </div>
-        <div class="hero-stat">
-          <span class="label">Air Temperature</span>
-          <span class="number" id="heroAirTemp">--</span>
-        </div>
-        <div class="hero-stat">
-          <span class="label">Battery</span>
-          <span class="number" id="heroBattery">--</span>
-        </div>
-        <div class="hero-stat">
-          <span class="label">Auto Mode</span>
-          <span class="number" id="heroAuto">--</span>
-        </div>
-      </div>
-    </header>
+<div id="error" class="error"></div>
 
-    <main>
-      <section class="page active" id="dashboardPage">
-        <div class="section-grid">
-          <div class="stack">
-            <article class="panel">
-              <div class="panel-inner">
-                <div class="chart-header">
-                  <div>
-                    <h2>Current greenhouse snapshot</h2>
-                    <p class="subtle">Live metrics from the latest reading stored by your Apps Script feed.</p>
-                  </div>
-                  <span class="badge" id="refreshBadge">Waiting for data</span>
-                </div>
+<div class="grid">
+  <div class="card">
+    <div class="label">Soil moisture</div>
+    <div class="value"><span id="moisture">--</span><span class="unit">%</span></div>
+    <div class="note">Main watering trigger</div>
+  </div>
 
-                <div class="metric-grid">
-                  <div class="metric-card">
-                    <div class="kicker">Moisture</div>
-                    <div class="metric-value" id="moisture">--</div>
-                    <div class="metric-note">Soil moisture percent.</div>
-                  </div>
-                  <div class="metric-card">
-                    <div class="kicker">Dry Threshold</div>
-                    <div class="metric-value" id="threshold">--</div>
-                    <div class="metric-note">Dynamic dryness threshold.</div>
-                  </div>
-                  <div class="metric-card">
-                    <div class="kicker">Air Temp</div>
-                    <div class="metric-value" id="airTemp">--</div>
-                    <div class="metric-note">Ambient temperature in C.</div>
-                  </div>
-                  <div class="metric-card">
-                    <div class="kicker">Humidity</div>
-                    <div class="metric-value" id="humidity">--</div>
-                    <div class="metric-note">Ambient humidity percent.</div>
-                  </div>
-                </div>
+  <div class="card">
+    <div class="label">Adjusted dry threshold</div>
+    <div class="value"><span id="threshold">--</span><span class="unit">%</span></div>
+    <div class="note">Weather-adjusted dry point</div>
+  </div>
 
-                <div class="system-grid" style="margin-top: 16px;">
-                  <div class="metric-card">
-                    <div class="kicker">Soil Temp</div>
-                    <div class="metric-value" id="soilTemp">--</div>
-                  </div>
-                  <div class="metric-card">
-                    <div class="kicker">Light</div>
-                    <div class="metric-value" id="light">--</div>
-                  </div>
-                  <div class="metric-card">
-                    <div class="kicker">Battery</div>
-                    <div class="metric-value" id="battery">--</div>
-                  </div>
-                  <div class="metric-card">
-                    <div class="kicker">Moisture Raw</div>
-                    <div class="metric-value" id="moistureRaw">--</div>
-                  </div>
-                </div>
-              </div>
-            </article>
+  <div class="card">
+    <div class="label">Raw moisture reading</div>
+    <div class="value"><span id="moistureRaw">--</span></div>
+    <div class="note">Arduino analog value</div>
+  </div>
 
-            <article class="panel">
-              <div class="panel-inner">
-                <div class="chart-header">
-                  <div>
-                    <h2>Recent readings</h2>
-                    <p class="subtle">Recent live records with pump states, thresholds, and environment data.</p>
-                  </div>
-                </div>
+  <div class="card">
+    <div class="label">Air temperature</div>
+    <div class="value"><span id="airTemp">--</span><span class="unit">°C</span></div>
+  </div>
 
-                <div class="status-row" style="margin-bottom: 16px;">
-                  <span class="pill" id="waterPumpPill">Water Pump: --</span>
-                  <span class="pill" id="filterPumpPill">Filter Pump: --</span>
-                  <span class="pill" id="autoModePill">Auto Mode: --</span>
-                  <span class="pill" id="timestampPill">Updated: --</span>
-                </div>
+  <div class="card">
+    <div class="label">Humidity</div>
+    <div class="value"><span id="humidity">--</span><span class="unit">%</span></div>
+  </div>
 
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Time</th>
-                        <th>Moisture</th>
-                        <th>Raw</th>
-                        <th>Threshold</th>
-                        <th>Air C</th>
-                        <th>Humidity</th>
-                        <th>Soil C</th>
-                        <th>Light</th>
-                        <th>Battery</th>
-                        <th>Water Pump</th>
-                        <th>Filter Pump</th>
-                        <th>Auto</th>
-                      </tr>
-                    </thead>
-                    <tbody id="dataTable">
-                      <tr>
-                        <td colspan="12" class="empty">Loading recent readings...</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+  <div class="card">
+    <div class="label">Soil temperature</div>
+    <div class="value"><span id="soilTemp">--</span><span class="unit">°C</span></div>
+  </div>
 
-                <div class="table-note">The live feed shows up to the latest 20 rows from the spreadsheet.</div>
-              </div>
-            </article>
-          </div>
+  <div class="card">
+    <div class="label">Light level</div>
+    <div class="value"><span id="light">--</span><span class="unit">lux</span></div>
+  </div>
 
-          <aside class="stack">
-            <article class="panel">
-              <div class="panel-inner">
-                <h2>Quick insights</h2>
-                <p class="subtle">Short summaries based on the loaded history.</p>
-                <div class="insight-list" id="insightList">
-                  <div class="insight"><strong>Preparing insights...</strong> Insights will appear once live data finishes loading.</div>
-                </div>
-              </div>
-            </article>
+  <div class="card">
+    <div class="label">Battery voltage</div>
+    <div class="value"><span id="battery">--</span><span class="unit">V</span></div>
+    <div class="note" id="batteryNote">4S LiPo monitor</div>
+  </div>
+</div>
 
-            <article class="panel">
-              <div class="panel-inner">
-                <h2>Latest raw line</h2>
-                <p class="subtle">Raw serial payload from the latest record.</p>
-                <div class="raw-box">
-                  <pre class="raw-line" id="rawLine">--</pre>
-                </div>
-              </div>
-            </article>
-          </aside>
-        </div>
-      </section>
+<div class="status-row">
+  <div class="pill">Clean → Plants Pump: <span id="waterPump">--</span></div>
+  <div class="pill">Dirty → Filter Pump: <span id="filterPump">--</span></div>
+  <div class="pill">Auto Mode: <span id="autoMode">--</span></div>
+  <div class="pill">Last Sensor Update: <span id="timestamp">--</span></div>
+</div>
 
-      <section class="page" id="visualizationsPage">
-        <div class="viz-grid">
-          <article class="chart-card">
-            <div class="chart-header">
-              <div>
-                <h3>Moisture vs threshold</h3>
-                <div class="chart-meta">Live moisture compared to the dry threshold</div>
-              </div>
-            </div>
-            <canvas id="moistureChart" width="800" height="280"></canvas>
-          </article>
+<h2>Recent Readings</h2>
 
-          <article class="chart-card">
-            <div class="chart-header">
-              <div>
-                <h3>Air and soil temperature</h3>
-                <div class="chart-meta">Recent temperature trend from both sensors</div>
-              </div>
-            </div>
-            <canvas id="temperatureChart" width="800" height="280"></canvas>
-          </article>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Moisture</th>
+        <th>Raw</th>
+        <th>Threshold</th>
+        <th>Air °C</th>
+        <th>Humidity</th>
+        <th>Soil °C</th>
+        <th>Light</th>
+        <th>Battery</th>
+        <th>Water Pump</th>
+        <th>Filter Pump</th>
+        <th>Auto</th>
+      </tr>
+    </thead>
+    <tbody id="recentBody">
+      <tr>
+        <td colspan="12">Loading...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-          <article class="chart-card">
-            <div class="chart-header">
-              <div>
-                <h3>Battery trend</h3>
-                <div class="chart-meta">Voltage movement across recent readings</div>
-              </div>
-            </div>
-            <canvas id="batteryChart" width="800" height="280"></canvas>
-          </article>
+<div class="raw-box">
+  <div class="label">Latest raw line</div>
+  <div id="rawLine" class="raw-line">--</div>
+</div>
+```
 
-          <article class="chart-card">
-            <div class="chart-header">
-              <div>
-                <h3>Pump activity</h3>
-                <div class="chart-meta">How often each pump has been active recently</div>
-              </div>
-            </div>
-            <canvas id="pumpChart" width="800" height="280"></canvas>
-          </article>
-        </div>
-      </section>
-    </main>
-
-    <footer>Smart Garden Monitor refreshes every 10 seconds from the live Google Apps Script feed.</footer>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIWFOveXHV3eLVIekOrm9UWTOOtIx5Z9pIXdjs-gjWBSkWDul6n0YkzDIt-SDAlHk/exec";
-    const REFRESH_MS = 10000;
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWZ0RVWSwElup5HkrAvJrA3Wno0T9yvXhwtzZfYgg5cka8RM-PTdsqZ5P9oWhHFAh1/exec";
 
-    document.querySelectorAll("[data-page-target]").forEach((button) => {
-      button.addEventListener("click", () => switchPage(button.dataset.pageTarget));
-    });
+    document.getElementById("webAppUrlDisplay").textContent = WEB_APP_URL;
 
-    function switchPage(targetId) {
-      document.querySelectorAll(".page").forEach((page) => {
-        page.classList.toggle("active", page.id === targetId);
-      });
-
-      document.querySelectorAll("[data-page-target]").forEach((button) => {
-        button.classList.toggle("active", button.dataset.pageTarget === targetId);
-      });
+    function apiUrl(action) {
+      return WEB_APP_URL + "?action=" + action + "&cacheBust=" + Date.now();
     }
 
-    async function loadDashboard() {
+    async function loadLatest() {
       try {
-        const [latestResponse, recentResponse] = await Promise.all([
-          fetch(buildApiUrl("latest")),
-          fetch(buildApiUrl("recent"))
-        ]);
+        const response = await fetch(apiUrl("latest"));
+        const text = await response.text();
 
-        const latestPayload = await latestResponse.json();
-        const recentPayload = await recentResponse.json();
-
-        if (latestPayload.status !== "ok" || !latestPayload.data) {
-          throw new Error(latestPayload.message || "Latest data unavailable");
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (jsonErr) {
+          throw new Error("Latest endpoint did not return JSON. Response: " + text.substring(0, 300));
         }
 
-        const latestData = normalizeRow(latestPayload.data);
-        const recentRows = normalizeRows(recentPayload);
+        if (result.status !== "ok") {
+          showError(result.message || "No latest data found yet.");
+          document.getElementById("pageStatus").textContent = "No latest data found.";
+          return;
+        }
 
-        updateCards(latestData);
-        updateStatusPills(latestData);
-        updateTable(recentRows);
-        updateInsights(recentRows, latestData);
-        updateRawLine(latestData.raw);
-        renderCharts(recentRows);
-      } catch (error) {
-        console.error(error);
-        showErrorState(error.message || "Unable to load sensor data.");
+        hideError();
+
+        const d = result.data;
+
+        setText("moisture", d.moisture);
+        setText("threshold", d.threshold);
+        setText("moistureRaw", d.moistureRaw);
+        setText("airTemp", d.airTemp);
+        setText("humidity", d.humidity);
+        setText("soilTemp", d.soilTemp);
+        setText("light", d.light);
+        setText("battery", d.battery);
+        setText("timestamp", d.timestamp);
+        setText("rawLine", d.raw);
+
+        setStatus("waterPump", d.waterPump);
+        setStatus("filterPump", d.filterPump);
+        setStatus("autoMode", d.autoMode);
+
+        updateBatteryNote(d.battery);
+
+        document.getElementById("pageStatus").textContent = "Latest data loaded successfully.";
+      } catch (err) {
+        showError("Could not load latest data: " + err.message);
+        document.getElementById("pageStatus").textContent = "Latest data failed.";
       }
     }
 
-    function buildApiUrl(action) {
-      return SCRIPT_URL + "?action=" + encodeURIComponent(action) + "&cacheBust=" + Date.now();
-    }
+    async function loadRecent() {
+      try {
+        const response = await fetch(apiUrl("recent"));
+        const text = await response.text();
 
-    function normalizeRows(payload) {
-      if (!payload || payload.status !== "ok" || !Array.isArray(payload.data)) {
-        return [];
-      }
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (jsonErr) {
+          throw new Error("Recent endpoint did not return JSON. Response: " + text.substring(0, 300));
+        }
 
-      return payload.data.map(normalizeRow);
-    }
+        const body = document.getElementById("recentBody");
+        body.innerHTML = "";
 
-    function normalizeRow(row) {
-      return {
-        timestamp: row?.timestamp || "--",
-        moisture: toNumber(row?.moisture),
-        moistureRaw: toNumber(row?.moistureRaw),
-        threshold: toNumber(row?.threshold),
-        airTemp: toNumber(row?.airTemp),
-        humidity: toNumber(row?.humidity),
-        soilTemp: toNumber(row?.soilTemp),
-        light: toNumber(row?.light),
-        battery: toNumber(row?.battery),
-        waterPump: normalizeState(row?.waterPump),
-        filterPump: normalizeState(row?.filterPump),
-        autoMode: normalizeState(row?.autoMode),
-        raw: row?.raw ? String(row.raw) : "--"
-      };
-    }
+        if (result.status !== "ok" || !result.data || result.data.length === 0) {
+          body.innerHTML = "<tr><td colspan='12'>No recent data found.</td></tr>";
+          return;
+        }
 
-    function updateCards(data) {
-      setText("moisture", formatPercent(data.moisture));
-      setText("threshold", formatPercent(data.threshold));
-      setText("airTemp", formatUnit(data.airTemp, " C"));
-      setText("humidity", formatPercent(data.humidity));
-      setText("soilTemp", formatUnit(data.soilTemp, " C"));
-      setText("light", formatUnit(data.light, " lux"));
-      setText("battery", formatUnit(data.battery, " V"));
-      setText("moistureRaw", formatPlain(data.moistureRaw));
+        const rows = result.data.slice().reverse();
 
-      setText("heroMoisture", formatPercent(data.moisture));
-      setText("heroAirTemp", formatUnit(data.airTemp, " C"));
-      setText("heroBattery", formatUnit(data.battery, " V"));
-      setText("heroAuto", data.autoMode);
+        rows.forEach(function(d) {
+          const row = document.createElement("tr");
 
-      setText("statusText", "Latest sensor update: " + data.timestamp);
-      setText("refreshBadge", "Auto-refresh every 10 seconds");
-    }
+          row.innerHTML =
+            "<td>" + safe(d.timestamp) + "</td>" +
+            "<td>" + safe(d.moisture) + "%</td>" +
+            "<td>" + safe(d.moistureRaw) + "</td>" +
+            "<td>" + safe(d.threshold) + "%</td>" +
+            "<td>" + safe(d.airTemp) + "</td>" +
+            "<td>" + safe(d.humidity) + "%</td>" +
+            "<td>" + safe(d.soilTemp) + "</td>" +
+            "<td>" + safe(d.light) + "</td>" +
+            "<td>" + safe(d.battery) + "V</td>" +
+            "<td>" + safe(d.waterPump) + "</td>" +
+            "<td>" + safe(d.filterPump) + "</td>" +
+            "<td>" + safe(d.autoMode) + "</td>";
 
-    function updateStatusPills(data) {
-      setPill("waterPumpPill", "Water Pump", data.waterPump, stateClass(data.waterPump));
-      setPill("filterPumpPill", "Filter Pump", data.filterPump, stateClass(data.filterPump));
-      setPill("autoModePill", "Auto Mode", data.autoMode, stateClass(data.autoMode));
-      setPill("timestampPill", "Updated", data.timestamp, "");
-    }
-
-    function updateTable(rows) {
-      const table = document.getElementById("dataTable");
-      table.innerHTML = "";
-
-      if (!rows.length) {
-        table.innerHTML = "<tr><td colspan='12' class='empty'>No recent data yet.</td></tr>";
-        return;
-      }
-
-      rows.slice().reverse().forEach((row) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${escapeHtml(row.timestamp)}</td>
-          <td>${escapeHtml(formatPercent(row.moisture))}</td>
-          <td>${escapeHtml(formatPlain(row.moistureRaw))}</td>
-          <td>${escapeHtml(formatPercent(row.threshold))}</td>
-          <td>${escapeHtml(formatShort(row.airTemp))}</td>
-          <td>${escapeHtml(formatPercent(row.humidity))}</td>
-          <td>${escapeHtml(formatShort(row.soilTemp))}</td>
-          <td>${escapeHtml(formatPlain(row.light))}</td>
-          <td>${escapeHtml(formatUnit(row.battery, " V"))}</td>
-          <td><span class="status-chip ${stateClass(row.waterPump)}">${escapeHtml(row.waterPump)}</span></td>
-          <td><span class="status-chip ${stateClass(row.filterPump)}">${escapeHtml(row.filterPump)}</span></td>
-          <td><span class="status-chip ${stateClass(row.autoMode)}">${escapeHtml(row.autoMode)}</span></td>
-        `;
-        table.appendChild(tr);
-      });
-    }
-
-    function updateInsights(rows, latestData) {
-      const list = document.getElementById("insightList");
-
-      if (!rows.length) {
-        list.innerHTML = "<div class='insight'><strong>No recent data.</strong> Insights will appear once the spreadsheet has live rows.</div>";
-        return;
-      }
-
-      const moistureAvg = average(rows.map((row) => row.moisture));
-      const airTempAvg = average(rows.map((row) => row.airTemp));
-      const batteryAvg = average(rows.map((row) => row.battery));
-      const waterPumpOn = rows.filter((row) => row.waterPump === "ON").length;
-      const filterPumpOn = rows.filter((row) => row.filterPump === "ON").length;
-      const thresholdGap = latestData.moisture - latestData.threshold;
-
-      const insights = [
-        `<strong>Moisture balance:</strong> latest moisture is ${formatSignedGap(thresholdGap)} relative to the current threshold.`,
-        `<strong>Climate average:</strong> air temperature is averaging ${formatShort(airTempAvg)} C over the visible history.`,
-        `<strong>Battery trend:</strong> average battery level is ${formatShort(batteryAvg)} V across the latest ${rows.length} rows.`,
-        `<strong>Pump activity:</strong> water pump ON ${waterPumpOn} times, filter pump ON ${filterPumpOn} times in the visible history.`
-      ];
-
-      list.innerHTML = insights.map((item) => `<div class="insight">${item}</div>`).join("");
-    }
-
-    function updateRawLine(raw) {
-      setText("rawLine", raw || "--");
-    }
-
-    function renderCharts(rows) {
-      const ordered = rows.slice();
-      drawDualLineChart("moistureChart", ordered, [
-        { key: "moisture", color: "#285943", label: "Moisture" },
-        { key: "threshold", color: "#d9863d", label: "Threshold" }
-      ]);
-      drawDualLineChart("temperatureChart", ordered, [
-        { key: "airTemp", color: "#d9863d", label: "Air Temp" },
-        { key: "soilTemp", color: "#7fb069", label: "Soil Temp" }
-      ]);
-      drawSingleLineChart("batteryChart", ordered, "battery", "#285943", "Battery");
-      drawPumpChart("pumpChart", ordered);
-    }
-
-    function drawSingleLineChart(canvasId, rows, key, color, label) {
-      drawDualLineChart(canvasId, rows, [{ key, color, label }]);
-    }
-
-    function drawDualLineChart(canvasId, rows, series) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext("2d");
-      clearCanvas(ctx, canvas);
-
-      const values = rows.flatMap((row) => series.map((item) => row[item.key])).filter(Number.isFinite);
-      if (!values.length) {
-        drawEmptyState(ctx, canvas, "Not enough data for this chart.");
-        return;
-      }
-
-      const padding = { top: 24, right: 18, bottom: 36, left: 46 };
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      const range = max - min || 1;
-
-      drawChartFrame(ctx, canvas, padding);
-
-      series.forEach((item, seriesIndex) => {
-        ctx.strokeStyle = item.color;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-
-        rows.forEach((row, index) => {
-          if (!Number.isFinite(row[item.key])) {
-            return;
-          }
-          const x = scaleX(index, rows.length, canvas.width, padding);
-          const y = scaleY(row[item.key], min, range, canvas.height, padding);
-          if (index === 0 || !Number.isFinite(rows[index - 1][item.key])) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+          body.appendChild(row);
         });
-        ctx.stroke();
-
-        rows.forEach((row, index) => {
-          if (!Number.isFinite(row[item.key])) {
-            return;
-          }
-          const x = scaleX(index, rows.length, canvas.width, padding);
-          const y = scaleY(row[item.key], min, range, canvas.height, padding);
-          ctx.fillStyle = item.color;
-          ctx.beginPath();
-          ctx.arc(x, y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        ctx.fillStyle = item.color;
-        ctx.font = '12px "Trebuchet MS", Verdana, sans-serif';
-        ctx.textAlign = "left";
-        ctx.fillText(item.label, padding.left + seriesIndex * 90, 16);
-      });
-
-      drawAxisLabels(ctx, canvas, padding, min, max, rows);
-    }
-
-    function drawPumpChart(canvasId, rows) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext("2d");
-      clearCanvas(ctx, canvas);
-
-      if (!rows.length) {
-        drawEmptyState(ctx, canvas, "Not enough data for pump activity.");
-        return;
+      } catch (err) {
+        document.getElementById("recentBody").innerHTML =
+          "<tr><td colspan='12'>Could not load recent readings: " + escapeHtml(err.message) + "</td></tr>";
       }
-
-      const values = [
-        { label: "Water ON", value: rows.filter((row) => row.waterPump === "ON").length, color: "#285943" },
-        { label: "Filter ON", value: rows.filter((row) => row.filterPump === "ON").length, color: "#d9863d" },
-        { label: "Auto ON", value: rows.filter((row) => row.autoMode === "ON").length, color: "#7fb069" }
-      ];
-
-      const padding = { top: 24, right: 26, bottom: 42, left: 46 };
-      drawChartFrame(ctx, canvas, padding);
-
-      const max = Math.max(...values.map((item) => item.value), 1);
-      const slotWidth = (canvas.width - padding.left - padding.right) / values.length;
-
-      values.forEach((item, index) => {
-        const barWidth = Math.min(110, slotWidth * 0.54);
-        const x = padding.left + slotWidth * index + (slotWidth - barWidth) / 2;
-        const y = padding.top + ((max - item.value) / max) * (canvas.height - padding.top - padding.bottom);
-        const height = canvas.height - padding.bottom - y;
-
-        ctx.fillStyle = item.color;
-        roundRect(ctx, x, y, barWidth, height, 18);
-        ctx.fill();
-
-        ctx.fillStyle = "#354035";
-        ctx.font = '600 14px "Trebuchet MS", Verdana, sans-serif';
-        ctx.textAlign = "center";
-        ctx.fillText(String(item.value), x + barWidth / 2, y - 8);
-        ctx.fillText(item.label, x + barWidth / 2, canvas.height - 16);
-      });
-    }
-
-    function drawChartFrame(ctx, canvas, padding) {
-      ctx.strokeStyle = "rgba(40, 89, 67, 0.18)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(padding.left, padding.top);
-      ctx.lineTo(padding.left, canvas.height - padding.bottom);
-      ctx.lineTo(canvas.width - padding.right, canvas.height - padding.bottom);
-      ctx.stroke();
-
-      ctx.strokeStyle = "rgba(40, 89, 67, 0.08)";
-      for (let i = 1; i <= 4; i += 1) {
-        const y = padding.top + ((canvas.height - padding.top - padding.bottom) / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(canvas.width - padding.right, y);
-        ctx.stroke();
-      }
-    }
-
-    function drawAxisLabels(ctx, canvas, padding, min, max, rows) {
-      ctx.fillStyle = "#5e6559";
-      ctx.font = '12px "Trebuchet MS", Verdana, sans-serif';
-      ctx.textAlign = "right";
-      ctx.fillText(formatShort(max), padding.left - 8, padding.top + 4);
-      ctx.fillText(formatShort(min), padding.left - 8, canvas.height - padding.bottom);
-
-      if (rows.length > 1) {
-        ctx.textAlign = "left";
-        ctx.fillText(shortenLabel(rows[0].timestamp), padding.left, canvas.height - 10);
-        ctx.textAlign = "right";
-        ctx.fillText(shortenLabel(rows[rows.length - 1].timestamp), canvas.width - padding.right, canvas.height - 10);
-      }
-    }
-
-    function drawEmptyState(ctx, canvas, message) {
-      ctx.fillStyle = "#5e6559";
-      ctx.font = '15px "Trebuchet MS", Verdana, sans-serif';
-      ctx.textAlign = "center";
-      ctx.fillText(message, canvas.width / 2, canvas.height / 2);
-    }
-
-    function clearCanvas(ctx, canvas) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#fffdf9";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function scaleX(index, length, width, padding) {
-      if (length <= 1) {
-        return width / 2;
-      }
-      return padding.left + (index / (length - 1)) * (width - padding.left - padding.right);
-    }
-
-    function scaleY(value, min, range, height, padding) {
-      return height - padding.bottom - ((value - min) / range) * (height - padding.top - padding.bottom);
-    }
-
-    function roundRect(ctx, x, y, width, height, radius) {
-      const r = Math.min(radius, width / 2, height / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + width, y, x + width, y + height, r);
-      ctx.arcTo(x + width, y + height, x, y + height, r);
-      ctx.arcTo(x, y + height, x, y, r);
-      ctx.arcTo(x, y, x + width, y, r);
-      ctx.closePath();
-    }
-
-    function showErrorState(message) {
-      setText("statusText", "Unable to load live garden feed.");
-      setText("refreshBadge", "Data unavailable");
-      document.getElementById("dataTable").innerHTML =
-        "<tr><td colspan='12' class='empty'>" + escapeHtml(message) + "</td></tr>";
-      document.getElementById("insightList").innerHTML =
-        "<div class='insight'><strong>Feed unavailable.</strong> " + escapeHtml(message) + "</div>";
-      setText("rawLine", "--");
-      renderCharts([]);
-    }
-
-    function setPill(id, label, value, className) {
-      const el = document.getElementById(id);
-      el.className = "pill" + (className ? " " + className : "");
-      el.textContent = label + ": " + value;
     }
 
     function setText(id, value) {
       const el = document.getElementById(id);
       if (el) {
-        el.textContent = value;
+        el.textContent = safe(value);
       }
     }
 
-    function normalizeState(value) {
-      const clean = String(value ?? "--").trim().toUpperCase();
-      if (clean === "ON" || clean === "OFF") {
-        return clean;
+    function setStatus(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const clean = safe(value);
+      el.textContent = clean;
+
+      el.classList.remove("on", "off", "warn");
+
+      if (clean === "ON") {
+        el.classList.add("on");
+      } else if (clean === "OFF") {
+        el.classList.add("off");
+      } else {
+        el.classList.add("warn");
       }
-      return clean || "--";
     }
 
-    function stateClass(value) {
-      if (value === "ON") return "status-on";
-      if (value === "OFF") return "status-off";
-      return "status-warn";
-    }
+    function updateBatteryNote(value) {
+      const note = document.getElementById("batteryNote");
+      const v = parseFloat(value);
 
-    function toNumber(value) {
-      const parsed = Number.parseFloat(String(value ?? "").replace(/[^0-9.-]/g, ""));
-      return Number.isFinite(parsed) ? parsed : NaN;
-    }
+      note.classList.remove("on", "off", "warn");
 
-    function average(values) {
-      const valid = values.filter(Number.isFinite);
-      if (!valid.length) {
-        return NaN;
+      if (isNaN(v)) {
+        note.textContent = "4S LiPo monitor";
+        return;
       }
-      return valid.reduce((sum, value) => sum + value, 0) / valid.length;
-    }
 
-    function formatShort(value) {
-      return Number.isFinite(value) ? value.toFixed(1).replace(/\.0$/, "") : "--";
-    }
-
-    function formatPercent(value) {
-      return Number.isFinite(value) ? formatShort(value) + "%" : "--";
-    }
-
-    function formatUnit(value, unit) {
-      return Number.isFinite(value) ? formatShort(value) + unit : "--";
-    }
-
-    function formatPlain(value) {
-      return Number.isFinite(value) ? String(Math.round(value * 10) / 10).replace(/\.0$/, "") : "--";
-    }
-
-    function formatSignedGap(value) {
-      if (!Number.isFinite(value)) {
-        return "not available";
+      if (v >= 15.5) {
+        note.textContent = "Battery looks high / charged";
+        note.classList.add("on");
+      } else if (v >= 14.0) {
+        note.textContent = "Battery looks okay";
+      } else if (v >= 13.0) {
+        note.textContent = "Battery low soon";
+        note.classList.add("warn");
+      } else {
+        note.textContent = "Battery very low";
+        note.classList.add("off");
       }
-      if (value === 0) {
-        return "exactly at threshold";
-      }
-      return value > 0
-        ? formatShort(value) + " points above threshold"
-        : formatShort(Math.abs(value)) + " points below threshold";
     }
 
-    function shortenLabel(label) {
-      return String(label).length > 16 ? String(label).slice(0, 16) + "..." : String(label);
+    function showError(message) {
+      const el = document.getElementById("error");
+      el.textContent = message;
+      el.style.display = "block";
+    }
+
+    function hideError() {
+      const el = document.getElementById("error");
+      el.textContent = "";
+      el.style.display = "none";
+    }
+
+    function safe(value) {
+      if (value === undefined || value === null || value === "") {
+        return "--";
+      }
+
+      return String(value);
     }
 
     function escapeHtml(value) {
       return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    loadDashboard();
-    setInterval(loadDashboard, REFRESH_MS);
+    function refresh() {
+      setText("pageUpdate", new Date().toLocaleString());
+      loadLatest();
+      loadRecent();
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
   </script>
+
 </body>
 </html>
+>>>>>>> a09d0c6171b666d032e85601f589bd976e7e6c30
