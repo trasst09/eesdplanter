@@ -47,6 +47,11 @@ function doGet(e) {
       return jsonResponse(getRecentData());
     }
 
+    // API endpoint: all rows.
+    if (action === "all") {
+      return jsonResponse(getAllData());
+    }
+
     // Otherwise treat request as ESP8266 data upload.
     return jsonResponse(saveData(params));
 
@@ -122,6 +127,27 @@ function getRecentData() {
 
   const rows = sheet
     .getRange(startRow, 1, count, HEADERS.length)
+    .getValues();
+
+  return {
+    status: "ok",
+    data: rows.map(rowToObject)
+  };
+}
+
+function getAllData() {
+  const sheet = getSheet();
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) {
+    return {
+      status: "empty",
+      data: []
+    };
+  }
+
+  const rows = sheet
+    .getRange(2, 1, lastRow - 1, HEADERS.length)
     .getValues();
 
   return {

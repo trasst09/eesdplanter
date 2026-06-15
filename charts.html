@@ -264,7 +264,7 @@
           <p class="eyebrow">Smart Garden Monitor</p>
           <h1>Garden trends in one view.</h1>
           <p class="hero-copy">
-            This page uses the same live Google Apps Script feed as the dashboard and turns recent spreadsheet
+            This page uses the same live Google Apps Script feed as the dashboard and turns full spreadsheet
             rows into chart views for moisture, temperature, battery, and pump behavior.
           </p>
         </div>
@@ -310,7 +310,7 @@
           <div class="chart-header">
             <div>
               <h3>Battery trend</h3>
-              <div class="chart-meta">Voltage movement across recent readings</div>
+              <div class="chart-meta">Voltage movement across the full sheet history</div>
             </div>
           </div>
           <canvas id="batteryChart" width="800" height="280"></canvas>
@@ -320,7 +320,7 @@
           <div class="chart-header">
             <div>
               <h3>Pump activity</h3>
-              <div class="chart-meta">How often each pump has been active recently</div>
+              <div class="chart-meta">How often each pump has been active across the full sheet history</div>
             </div>
           </div>
           <canvas id="pumpChart" width="800" height="280"></canvas>
@@ -337,18 +337,18 @@
 
     async function loadCharts() {
       try {
-        const recentResponse = await fetch(buildApiUrl("recent"));
-        const recentPayload = await recentResponse.json();
-        const recentRows = normalizeRows(recentPayload);
+        const allResponse = await fetch(buildApiUrl("all"));
+        const allPayload = await allResponse.json();
+        const allRows = normalizeRows(allPayload);
 
-        setText("statusText", recentRows.length
-          ? "Latest chart refresh: " + recentRows[recentRows.length - 1].timestamp
-          : "No recent chart data available.");
-        setText("refreshBadge", recentRows.length
-          ? "Updated " + recentRows[recentRows.length - 1].timestamp
+        setText("statusText", allRows.length
+          ? "Chart history loaded through: " + allRows[allRows.length - 1].timestamp
+          : "No chart data available yet.");
+        setText("refreshBadge", allRows.length
+          ? "Updated " + allRows[allRows.length - 1].timestamp
           : "Waiting for data");
 
-        renderCharts(recentRows);
+        renderCharts(allRows);
       } catch (error) {
         console.error(error);
         setText("statusText", "Chart feed unavailable.");
