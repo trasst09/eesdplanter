@@ -378,8 +378,12 @@
         return "No chart data available yet.";
       }
 
+      const ordered = sortRowsByTimestamp(rows);
+      const start = ordered[0]?.timestamp || "--";
+      const end = ordered[ordered.length - 1]?.timestamp || "--";
+
       if (source === "all") {
-        return "Chart history loaded through: " + rows[rows.length - 1].timestamp;
+        return "Charting full history from " + start + " through " + end + ".";
       }
 
       return "Showing recent rows only. Deploy the latest Apps Script version to graph the full sheet history.";
@@ -396,6 +400,7 @@
     function normalizeRow(row) {
       return {
         timestamp: row?.timestamp || "--",
+        timestampMs: parseTimestamp(row?.timestamp),
         moisture: toNumber(row?.moisture),
         threshold: toNumber(row?.threshold),
         airTemp: toNumber(row?.airTemp),
@@ -408,7 +413,7 @@
     }
 
     function renderCharts(rows) {
-      const ordered = rows.slice();
+      const ordered = sortRowsByTimestamp(rows);
       drawDualLineChart("moistureChart", ordered, [
         { key: "moisture", color: "#285943", label: "Moisture" },
         { key: "threshold", color: "#d9863d", label: "Threshold" }
@@ -605,6 +610,33 @@
 
       const usableHeight = height - padding.top - padding.bottom;
       return padding.top + (1 - (value - min) / (max - min)) * usableHeight;
+    }
+
+    function sortRowsByTimestamp(rows) {
+      return rows.slice().sort((a, b) => {
+        const aMs = Number.isFinite(a?.timestampMs) ? a.timestampMs : Number.POSITIVE_INFINITY;
+        const bMs = Number.isFinite(b?.timestampMs) ? b.timestampMs : Number.POSITIVE_INFINITY;
+        return aMs - bMs;
+      });
+    }
+
+    function parseTimestamp(value) {
+      const text = String(value || "").trim();
+      const match = text.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
+
+      if (!match) {
+        const parsed = Date.parse(text);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+
+      const year = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const day = Number(match[3]);
+      const hour = Number(match[4]);
+      const minute = Number(match[5]);
+      const second = Number(match[6]);
+      const parsed = new Date(year, month, day, hour, minute, second).getTime();
+      return Number.isFinite(parsed) ? parsed : null;
     }
 
     function roundRect(ctx, x, y, width, height, radius) {
