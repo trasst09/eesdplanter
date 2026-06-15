@@ -1,20 +1,9 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
-<head>
-@@ -1028,3 +1029,509 @@ <h3>Reading distribution</h3>
-</script>
-</body>
-</html>
-=======
-<!DOCTYPE html>
-
-<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Garden Dashboard</title>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -29,6 +18,14 @@
       margin: 0 auto;
     }
 
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
     h1 {
       margin: 0;
       font-size: 32px;
@@ -38,6 +35,29 @@
       color: #667066;
       margin-top: 6px;
       margin-bottom: 22px;
+    }
+
+    .nav {
+      display: inline-flex;
+      background: #ffffff;
+      border: 1px solid #dfe8d8;
+      border-radius: 999px;
+      padding: 6px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #456245;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .nav a.active {
+      background: #2e6b2e;
+      color: #ffffff;
     }
 
     .debug {
@@ -200,122 +220,135 @@
         font-size: 26px;
       }
 
+      .nav {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .nav a {
+        flex: 1;
+        text-align: center;
+      }
+
       table {
         min-width: 850px;
       }
     }
   </style>
-
 </head>
-
 <body>
   <div class="container">
-    <h1>Smart Garden Dashboard</h1>
-    <div class="subtitle">Live salal planter data from Arduino + ESP8266</div>
+    <div class="topbar">
+      <div>
+        <h1>Smart Garden Dashboard</h1>
+        <div class="subtitle">Live salal planter data from Arduino + ESP8266</div>
+      </div>
+      <nav class="nav" aria-label="Page navigation">
+        <a class="active" href="index.html" aria-current="page">Dashboard</a>
+        <a href="charts.html">Visualizations</a>
+      </nav>
+    </div>
 
-```
-<button onclick="refresh()">Refresh Now</button>
+    <button onclick="refresh()">Refresh Now</button>
 
-<div class="debug">
-  <b>Dashboard status:</b>
-  <span id="pageStatus">Loading...</span>
-  <br>
-  <b>API URL:</b>
-  <span id="webAppUrlDisplay">--</span>
-  <br>
-  <b>Last refresh:</b>
-  <span id="pageUpdate">--</span>
-</div>
+    <div class="debug">
+      <b>Dashboard status:</b>
+      <span id="pageStatus">Loading...</span>
+      <br>
+      <b>API URL:</b>
+      <span id="webAppUrlDisplay">--</span>
+      <br>
+      <b>Last refresh:</b>
+      <span id="pageUpdate">--</span>
+    </div>
 
-<div id="error" class="error"></div>
+    <div id="error" class="error"></div>
 
-<div class="grid">
-  <div class="card">
-    <div class="label">Soil moisture</div>
-    <div class="value"><span id="moisture">--</span><span class="unit">%</span></div>
-    <div class="note">Main watering trigger</div>
-  </div>
+    <div class="grid">
+      <div class="card">
+        <div class="label">Soil moisture</div>
+        <div class="value"><span id="moisture">--</span><span class="unit">%</span></div>
+        <div class="note">Main watering trigger</div>
+      </div>
 
-  <div class="card">
-    <div class="label">Adjusted dry threshold</div>
-    <div class="value"><span id="threshold">--</span><span class="unit">%</span></div>
-    <div class="note">Weather-adjusted dry point</div>
-  </div>
+      <div class="card">
+        <div class="label">Adjusted dry threshold</div>
+        <div class="value"><span id="threshold">--</span><span class="unit">%</span></div>
+        <div class="note">Weather-adjusted dry point</div>
+      </div>
 
-  <div class="card">
-    <div class="label">Raw moisture reading</div>
-    <div class="value"><span id="moistureRaw">--</span></div>
-    <div class="note">Arduino analog value</div>
-  </div>
+      <div class="card">
+        <div class="label">Raw moisture reading</div>
+        <div class="value"><span id="moistureRaw">--</span></div>
+        <div class="note">Arduino analog value</div>
+      </div>
 
-  <div class="card">
-    <div class="label">Air temperature</div>
-    <div class="value"><span id="airTemp">--</span><span class="unit">°C</span></div>
-  </div>
+      <div class="card">
+        <div class="label">Air temperature</div>
+        <div class="value"><span id="airTemp">--</span><span class="unit">°C</span></div>
+      </div>
 
-  <div class="card">
-    <div class="label">Humidity</div>
-    <div class="value"><span id="humidity">--</span><span class="unit">%</span></div>
-  </div>
+      <div class="card">
+        <div class="label">Humidity</div>
+        <div class="value"><span id="humidity">--</span><span class="unit">%</span></div>
+      </div>
 
-  <div class="card">
-    <div class="label">Soil temperature</div>
-    <div class="value"><span id="soilTemp">--</span><span class="unit">°C</span></div>
-  </div>
+      <div class="card">
+        <div class="label">Soil temperature</div>
+        <div class="value"><span id="soilTemp">--</span><span class="unit">°C</span></div>
+      </div>
 
-  <div class="card">
-    <div class="label">Light level</div>
-    <div class="value"><span id="light">--</span><span class="unit">lux</span></div>
-  </div>
+      <div class="card">
+        <div class="label">Light level</div>
+        <div class="value"><span id="light">--</span><span class="unit">lux</span></div>
+      </div>
 
-  <div class="card">
-    <div class="label">Battery voltage</div>
-    <div class="value"><span id="battery">--</span><span class="unit">V</span></div>
-    <div class="note" id="batteryNote">4S LiPo monitor</div>
-  </div>
-</div>
+      <div class="card">
+        <div class="label">Battery voltage</div>
+        <div class="value"><span id="battery">--</span><span class="unit">V</span></div>
+        <div class="note" id="batteryNote">4S LiPo monitor</div>
+      </div>
+    </div>
 
-<div class="status-row">
-  <div class="pill">Clean → Plants Pump: <span id="waterPump">--</span></div>
-  <div class="pill">Dirty → Filter Pump: <span id="filterPump">--</span></div>
-  <div class="pill">Auto Mode: <span id="autoMode">--</span></div>
-  <div class="pill">Last Sensor Update: <span id="timestamp">--</span></div>
-</div>
+    <div class="status-row">
+      <div class="pill">Clean -> Plants Pump: <span id="waterPump">--</span></div>
+      <div class="pill">Dirty -> Filter Pump: <span id="filterPump">--</span></div>
+      <div class="pill">Auto Mode: <span id="autoMode">--</span></div>
+      <div class="pill">Last Sensor Update: <span id="timestamp">--</span></div>
+    </div>
 
-<h2>Recent Readings</h2>
+    <h2>Recent Readings</h2>
 
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Moisture</th>
-        <th>Raw</th>
-        <th>Threshold</th>
-        <th>Air °C</th>
-        <th>Humidity</th>
-        <th>Soil °C</th>
-        <th>Light</th>
-        <th>Battery</th>
-        <th>Water Pump</th>
-        <th>Filter Pump</th>
-        <th>Auto</th>
-      </tr>
-    </thead>
-    <tbody id="recentBody">
-      <tr>
-        <td colspan="12">Loading...</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Moisture</th>
+            <th>Raw</th>
+            <th>Threshold</th>
+            <th>Air °C</th>
+            <th>Humidity</th>
+            <th>Soil °C</th>
+            <th>Light</th>
+            <th>Battery</th>
+            <th>Water Pump</th>
+            <th>Filter Pump</th>
+            <th>Auto</th>
+          </tr>
+        </thead>
+        <tbody id="recentBody">
+          <tr>
+            <td colspan="12">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-<div class="raw-box">
-  <div class="label">Latest raw line</div>
-  <div id="rawLine" class="raw-line">--</div>
-</div>
-```
-
+    <div class="raw-box">
+      <div class="label">Latest raw line</div>
+      <div id="rawLine" class="raw-line">--</div>
+    </div>
   </div>
 
   <script>
@@ -508,7 +541,5 @@
     refresh();
     setInterval(refresh, 10000);
   </script>
-
 </body>
 </html>
->>>>>>> a09d0c6171b666d032e85601f589bd976e7e6c30
