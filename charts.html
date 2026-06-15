@@ -332,23 +332,21 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIWFOveXHV3eLVIekOrm9UWTOOtIx5Z9pIXdjs-gjWBSkWDul6n0YkzDIt-SDAlHk/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZ0RVWSwElup5HkrAvJrA3Wno0T9yvXhwtzZfYgg5cka8RM-PTdsqZ5P9oWhHFAh1/exec";
     const REFRESH_MS = 10000;
 
     async function loadCharts() {
       try {
-        const allResponse = await fetch(buildApiUrl("all"));
-        const allPayload = await allResponse.json();
-        const allRows = normalizeRows(allPayload);
+        const { rows, source } = await fetchChartRows();
 
-        setText("statusText", allRows.length
-          ? "Chart history loaded through: " + allRows[allRows.length - 1].timestamp
+        setText("statusText", rows.length
+          ? "Chart history loaded through: " + rows[rows.length - 1].timestamp
           : "No chart data available yet.");
-        setText("refreshBadge", allRows.length
-          ? "Updated " + allRows[allRows.length - 1].timestamp
+        setText("refreshBadge", rows.length
+          ? (source === "all" ? "Full history loaded" : "Recent data fallback")
           : "Waiting for data");
 
-        renderCharts(allRows);
+        renderCharts(rows);
       } catch (error) {
         console.error(error);
         setText("statusText", "Chart feed unavailable.");
@@ -359,6 +357,22 @@
 
     function buildApiUrl(action) {
       return SCRIPT_URL + "?action=" + encodeURIComponent(action) + "&cacheBust=" + Date.now();
+    }
+
+    async function fetchChartRows() {
+      const allResponse = await fetch(buildApiUrl("all"));
+      const allPayload = await allResponse.json();
+      const allRows = normalizeRows(allPayload);
+
+      if (allRows.length) {
+        return { rows: allRows, source: "all" };
+      }
+
+      const recentResponse = await fetch(buildApiUrl("recent"));
+      const recentPayload = await recentResponse.json();
+      const recentRows = normalizeRows(recentPayload);
+
+      return { rows: recentRows, source: "recent" };
     }
 
     function normalizeRows(payload) {
