@@ -339,11 +339,9 @@
       try {
         const { rows, source } = await fetchChartRows();
 
-        setText("statusText", rows.length
-          ? "Chart history loaded through: " + rows[rows.length - 1].timestamp
-          : "No chart data available yet.");
+        setText("statusText", buildStatusMessage(rows, source));
         setText("refreshBadge", rows.length
-          ? (source === "all" ? "Full history loaded" : "Recent data fallback")
+          ? (source === "all" ? "Full history loaded" : "Deploy Apps Script update")
           : "Waiting for data");
 
         renderCharts(rows);
@@ -373,6 +371,18 @@
       const recentRows = normalizeRows(recentPayload);
 
       return { rows: recentRows, source: "recent" };
+    }
+
+    function buildStatusMessage(rows, source) {
+      if (!rows.length) {
+        return "No chart data available yet.";
+      }
+
+      if (source === "all") {
+        return "Chart history loaded through: " + rows[rows.length - 1].timestamp;
+      }
+
+      return "Showing recent rows only. Deploy the latest Apps Script version to graph the full sheet history.";
     }
 
     function normalizeRows(payload) {
